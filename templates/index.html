@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Stream</title>
+    <meta name="description" content="Stay up to date with the latest features, improvements, and updates in Google Cloud BigQuery. Built-in sharing tools.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Google Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dark-theme">
+    <!-- Background decorations -->
+    <div class="blob-bg blob-purple"></div>
+    <div class="blob-bg blob-indigo"></div>
+
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <span class="material-symbols-outlined logo-icon">database_schema</span>
+                <div class="logo-text">
+                    <h1>BigQuery</h1>
+                    <span class="sub-logo">Release Stream</span>
+                </div>
+            </div>
+            
+            <div class="controls-area">
+                <div class="stats-badge" id="stats-badge">
+                    <span class="label">Total Updates:</span>
+                    <span class="value" id="total-count">0</span>
+                </div>
+                
+                <button id="btn-refresh" class="btn btn-primary" title="Refresh Release Notes">
+                    <span class="material-symbols-outlined icon-spinner" id="refresh-icon">refresh</span>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-content">
+        <section class="toolbar-section">
+            <div class="toolbar-container">
+                <!-- Search bar -->
+                <div class="search-box">
+                    <span class="material-symbols-outlined search-icon">search</span>
+                    <input type="text" id="search-input" placeholder="Search updates (e.g. Gemini, partition, table)..." autocomplete="off">
+                    <button id="clear-search" class="clear-btn" style="display: none;">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                
+                <!-- Filter Pills -->
+                <div class="filter-group" id="filter-container">
+                    <button class="filter-pill active" data-filter="all">All Updates</button>
+                    <button class="filter-pill" data-filter="Feature">
+                        <span class="pill-dot feature-dot"></span>Features
+                    </button>
+                    <button class="filter-pill" data-filter="Change">
+                        <span class="pill-dot change-dot"></span>Changes
+                    </button>
+                    <button class="filter-pill" data-filter="Issue">
+                        <span class="pill-dot issue-dot"></span>Issues
+                    </button>
+                    <button class="filter-pill" data-filter="Deprecated">
+                        <span class="pill-dot deprecated-dot"></span>Deprecated
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skeleton Loading Loader -->
+        <section class="feed-section" id="skeleton-loader">
+            <div class="skeleton-card">
+                <div class="skeleton-header">
+                    <div class="skeleton-badge"></div>
+                    <div class="skeleton-date"></div>
+                </div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line w80"></div>
+                    <div class="skeleton-line w100"></div>
+                    <div class="skeleton-line w60"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-header">
+                    <div class="skeleton-badge"></div>
+                    <div class="skeleton-date"></div>
+                </div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line w80"></div>
+                    <div class="skeleton-line w100"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-header">
+                    <div class="skeleton-badge"></div>
+                    <div class="skeleton-date"></div>
+                </div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line w80"></div>
+                    <div class="skeleton-line w100"></div>
+                    <div class="skeleton-line w60"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Feed Grid -->
+        <section class="feed-section" id="feed-container" style="display: none;">
+            <!-- Rendered cards go here -->
+        </section>
+
+        <!-- Empty / Error state -->
+        <section class="empty-state" id="empty-state" style="display: none;">
+            <span class="material-symbols-outlined empty-icon">search_off</span>
+            <h2>No Updates Found</h2>
+            <p>We couldn't find any release notes matching your search or filters. Try adjusting them.</p>
+            <button id="reset-filters-btn" class="btn btn-secondary">Reset Filters</button>
+        </section>
+    </main>
+
+    <!-- Custom Twitter Composer Modal -->
+    <div class="modal-backdrop" id="twitter-modal" style="display: none;">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <!-- Twitter SVG Icon -->
+                    <svg viewBox="0 0 24 24" class="x-logo-svg" width="20" height="20">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                    </svg>
+                    <span>Compose Tweet</span>
+                </div>
+                <button class="close-modal-btn" id="close-modal">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="composer-card">
+                    <div class="composer-header">
+                        <div class="user-avatar">BQ</div>
+                        <div class="user-info">
+                            <span class="user-name">BigQuery Streamer</span>
+                            <span class="user-handle">@bq_release_stream</span>
+                        </div>
+                    </div>
+                    <textarea id="tweet-textarea" rows="6" maxlength="280" placeholder="What's happening?"></textarea>
+                </div>
+                <div class="composer-actions">
+                    <div class="char-counter">
+                        <svg class="progress-ring" width="30" height="30">
+                            <circle class="progress-ring__circle-bg" stroke="#334155" stroke-width="2.5" fill="transparent" r="11" cx="15" cy="15"/>
+                            <circle class="progress-ring__circle" id="char-progress" stroke="#6366f1" stroke-width="2.5" fill="transparent" r="11" cx="15" cy="15"/>
+                        </svg>
+                        <span id="char-count">280</span>
+                    </div>
+                    <div class="btn-group">
+                        <button id="btn-copy-tweet" class="btn btn-secondary">
+                            <span class="material-symbols-outlined">content_copy</span>
+                            <span>Copy</span>
+                        </button>
+                        <button id="btn-post-tweet" class="btn btn-primary btn-tweet-submit">
+                            <span>Post to X</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast">
+        <span class="material-symbols-outlined toast-icon">check_circle</span>
+        <span class="toast-message">Link copied to clipboard!</span>
+    </div>
+
+    <footer class="app-footer">
+        <p>BigQuery Release Notes Stream • Updated in real time</p>
+    </footer>
+
+    <!-- JS Logic -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
