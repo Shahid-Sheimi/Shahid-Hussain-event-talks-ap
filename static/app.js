@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearSearchBtn = document.getElementById('clear-search');
     const filterContainer = document.getElementById('filter-container');
     const resetFiltersBtn = document.getElementById('reset-filters-btn');
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const btnExport = document.getElementById('btn-export');
     
     // Modal DOM Elements
     const twitterModal = document.getElementById('twitter-modal');
@@ -171,13 +174,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const actions = document.createElement('div');
         actions.className = 'card-actions';
 
-        // Copy button
-        const btnCopy = document.createElement('button');
-        btnCopy.className = 'btn-icon';
-        btnCopy.title = 'Copy link to this release';
-        btnCopy.innerHTML = '<span class="material-symbols-outlined">link</span>';
-        btnCopy.addEventListener('click', () => {
+        // Copy Link button
+        const btnCopyLink = document.createElement('button');
+        btnCopyLink.className = 'btn-icon';
+        btnCopyLink.title = 'Copy link to this release';
+        btnCopyLink.innerHTML = '<span class="material-symbols-outlined">link</span>';
+        btnCopyLink.addEventListener('click', () => {
             copyToClipboard(update.link, 'Link copied to clipboard!');
+        });
+
+        // Copy Text content button
+        const btnCopyText = document.createElement('button');
+        btnCopyText.className = 'btn-icon';
+        btnCopyText.title = 'Copy release description';
+        btnCopyText.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
+        btnCopyText.addEventListener('click', () => {
+            copyToClipboard(update.text, 'Release content copied to clipboard!');
         });
 
         // Tweet button
@@ -193,7 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
             openTweetModal(update);
         });
 
-        actions.appendChild(btnCopy);
+        actions.appendChild(btnCopyLink);
+        actions.appendChild(btnCopyText);
         actions.appendChild(btnTweet);
 
         card.appendChild(header);
@@ -335,8 +348,81 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================================================
+    // Theme and CSV Utilities
+    // ==========================================================================
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-theme');
+            themeIcon.textContent = 'dark_mode';
+        } else {
+            document.body.classList.remove('light-theme');
+            themeIcon.textContent = 'light_mode';
+        }
+    }
+
+    function toggleTheme() {
+        const isLight = document.body.classList.toggle('light-theme');
+        if (isLight) {
+            localStorage.setItem('theme', 'light');
+            themeIcon.textContent = 'dark_mode';
+            showToast('Swapped to Light Theme', 'success');
+        } else {
+            localStorage.setItem('theme', 'dark');
+            themeIcon.textContent = 'light_mode';
+            showToast('Swapped to Dark Theme', 'success');
+        }
+    }
+
+    function getFilteredNotes() {
+        return allUpdates.filter(update => {
+            const matchesFilter = activeFilter === 'all' || 
+                update.type.toLowerCase() === activeFilter.toLowerCase();
+            const matchesSearch = !searchQuery || 
+                update.text.toLowerCase().includes(searchQuery) ||
+                update.type.toLowerCase().includes(searchQuery) ||
+                update.date.toLowerCase().includes(searchQuery);
+            return matchesFilter && matchesSearch;
+        });
+    }
+
+    function exportToCSV() {
+        const filtered = getFilteredNotes();
+        if (filtered.length === 0) {
+            showToast('No updates to export', 'error');
+            return;
+        }
+
+        const headers = ['Date', 'Type', 'Content', 'Link'];
+        const rows = filtered.map(update => [
+            update.date,
+            update.type,
+            `"${update.text.replace(/"/g, '""')}"`,
+            update.link
+        ]);
+
+        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `bigquery_release_notes_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Exported CSV successfully!', 'success');
+    }
+
+    // ==========================================================================
     // Event Listeners
     // ==========================================================================
+    // Initialize Theme
+    initTheme();
+
+    themeToggle.addEventListener('click', toggleTheme);
+    btnExport.addEventListener('click', exportToCSV);
+
     btnRefresh.addEventListener('click', () => {
         fetchReleaseNotes(true);
     });

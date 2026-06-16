@@ -33,11 +33,20 @@
             </div>
             
             <div class="controls-area">
+                <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                    <span class="material-symbols-outlined" id="theme-icon">light_mode</span>
+                </button>
+
                 <div class="stats-badge" id="stats-badge">
                     <span class="label">Total Updates:</span>
                     <span class="value" id="total-count">0</span>
                 </div>
                 
+                <button id="btn-export" class="btn btn-secondary" title="Export current list to CSV">
+                    <span class="material-symbols-outlined">download</span>
+                    <span>Export CSV</span>
+                </button>
+
                 <button id="btn-refresh" class="btn btn-primary" title="Refresh Release Notes">
                     <span class="material-symbols-outlined icon-spinner" id="refresh-icon">refresh</span>
                     <span>Refresh</span>
